@@ -22,6 +22,7 @@ score = 0
 game_time = GAME_TIME
 client_time = 0
 game_active = True
+timer_job = None
 
 # -------------------
 # Логика
@@ -78,7 +79,7 @@ def move_right(event=None):
     global player_pos
     if not game_active:
         return
-    if player_pos < 3:
+    if player_pos < len(ALL_INGREDIENTS) - 1:
         player_pos += 1
         draw_all()
 
@@ -90,8 +91,9 @@ def move_up(event=None):
 # Таймеры
 # -------------------
 def update_timers():
-    global game_time, client_time
+    global game_time, client_time, timer_job
     if not game_active:
+        timer_job = None
         return
 
     game_time -= 1
@@ -102,10 +104,11 @@ def update_timers():
 
     if game_time <= 0:
         game_over()
+        timer_job = None
         return
 
     draw_all()
-    root.after(1000, update_timers)
+    timer_job = root.after(1000, update_timers)
 
 def game_over():
     global game_active
@@ -116,13 +119,17 @@ def game_over():
                        font=("Arial", 16), fill="black")
 
 def restart(event=None):
-    global score, game_time, game_active
+    global score, game_time, game_active, timer_job
+    if timer_job is not None:
+        root.after_cancel(timer_job)
+        timer_job = None
+
     score = 0
     game_time = GAME_TIME
     game_active = True
     new_client()
     draw_all()
-    root.after(1000, update_timers)
+    timer_job = root.after(1000, update_timers)
 
 # -------------------
 # Отрисовка
